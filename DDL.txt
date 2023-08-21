@@ -1,0 +1,230 @@
+drop table if exists results;
+drop table if exists sprint_results; 
+drop table if exists constructor_results; 
+drop table if exists constructor_standings;
+drop table if exists driver_standings; 
+drop table if exists lap_times; 
+drop table if exists pit_stops; 
+drop table if exists qualifying; 
+drop table if exists races; 
+drop table if exists circuits;
+drop table if exists constructors;
+drop table if exists drivers;	
+drop table if exists status; 
+drop table if exists seasons; 
+
+
+
+create table if not exists circuits
+(
+	circuitId		int not null,
+	circuitRef		varchar(50),
+	name			varchar(50),
+	location		varchar(50),
+	country			varchar(50),
+	latitude			float,
+	longitude			float,
+	altitude			int,
+	url			varchar(300),
+	constraint pk_circuits primary key (circuitId)
+);
+
+create table if not exists seasons
+(
+	year int,
+	url varchar(300),
+	CONSTRAINT pk_seasons PRIMARY KEY(year)
+);
+
+create table if not exists constructors
+(
+	constructorId	int not null,
+	constructorRef	varchar(50),
+	name		varchar(50),
+	nationality	varchar(50),
+	url		varchar(300),
+	constraint pk_constructorid primary key (constructorId)
+);
+
+create table if not exists drivers
+(
+	driverId		int not null,
+	driverRef		varchar(50),
+	number			int,
+	code			varchar(10),
+	forename		varchar(50),
+	surname			varchar(50),
+	dob			date,
+	nationality		varchar(50),
+	url			varchar(300),
+	constraint pk_driverid primary key (driverId)
+);
+
+
+create table if not exists status
+(
+	statusId	int not null,	
+	status		varchar(50),
+	constraint	pk_status primary key (statusId)
+);
+
+create table if not exists races
+(
+	raceId			int not null,
+	year			int,
+	round			int,
+	circuitId		int,
+	name			varchar(50),
+	date			date,
+	time			time,
+	url			varchar(300),
+	fp1_date		date,
+	fp1_time		time,
+	fp2_date		date,
+	fp2_time		time,
+	fp3_date		date,
+	fp3_time		time,
+	quali_date		date,
+	quali_time		time,
+	sprint_date		date,
+	sprint_time		time,
+	constraint pk_raceid primary key (raceId),
+	constraint fk_race_circuitid foreign key (circuitId) references circuits(circuitId),
+	constraint fk_race_year foreign key (year) references seasons(year)
+);
+
+create table if not exists lap_times
+(
+	raceId			int,
+	driverId		int,
+	lap			int,
+	position		int,
+	time			time,
+	milliseconds		bigint,
+	constraint fk_lap_times_races foreign key (raceID) references races(raceId),
+	constraint fk_lap_times_drivers foreign key (driverID) references drivers(driverId)
+);
+
+create table if not exists pit_stops
+(
+	raceId			int not null,
+	driverId		int not null,
+	stop			int,
+	lap			int,
+	time			time,
+	duration		varchar(50),	
+	milliseconds		bigint,
+	constraint fk_pit_stops_races foreign key (raceID) references races(raceId),
+	constraint fk_pit_stops_drivers foreign key (driverID) references drivers(driverId)
+);
+
+create table if not exists constructor_results
+(
+	constructorResultsId	int not null,
+	raceId			int,
+	constructorId		int,
+	points			float,
+	status			varchar(10),
+	constraint pk_constructor_results primary key (constructorResultsId),
+	constraint fk_constructor_results_races foreign key (raceId) references races(raceId),
+	constraint fk_constructor_results_constructor foreign key (constructorId) references constructors(constructorId)
+);
+
+create table if not exists constructor_standings
+(
+	constructorStandingsId	int not null,
+	raceId			int,
+	constructorId		int,
+	points			float,
+	position		int,
+	positionText		varchar(50),
+	wins			int,
+	constraint pk_constructorstandingid primary key (constructorStandingsId),
+	constraint fk_constructor_standings_races foreign key (raceId) references races(raceId),
+	constraint fk_constructor_standings_constructor foreign key (constructorId) references constructors(constructorId)
+);
+
+create table if not exists driver_standings
+(
+	driverStandingsId	int not null,
+	raceId			int,
+	driverId		int,
+	points			float,
+	position		int,
+	positionText		varchar(50),
+	wins			int,
+	constraint pk_driverstandingid primary key (driverStandingsId),
+	constraint fk_driver_standings_races foreign key (raceId) references races(raceId),
+	constraint fk_driver_standings_constructor foreign key (driverId) references drivers(driverId)
+);
+
+create table if not exists qualifying
+(
+	qualifyId		int not null,
+	raceId			int,
+	driverId		int,
+	constructorId		int,
+	number			int,
+	position		int,
+	q1			time,
+	q2			time,
+	q3			time,
+	constraint pk_qualifyid primary key (qualifyId),
+	constraint fk_qualifying_races foreign key (raceId) references races(raceId),
+	constraint fk_qualifying_drivers foreign key (driverId) references drivers(driverId),
+	constraint fk_qualifying_constructor foreign key (constructorId) references constructors(constructorId)
+);
+
+create table if not exists results
+(
+	resultId		int not null,
+	raceId			int,
+	driverId		int,
+	constructorId		int,
+	number			int,
+	grid			int,
+	position		int,
+	positionText		varchar(50),
+	positionorder		int,
+	points			float,
+	laps			int,
+	time			varchar(50),
+	milliseconds		bigint,
+	fastestlap		int,
+	rank			int,
+	fastestLapTime		time,
+	fastestLapSpeed		float,
+	statusId		int,
+	constraint pk_resultid primary key (resultId),
+	constraint fk_result_status foreign key (statusId) references status(statusId),
+	constraint fk_result_races foreign key (raceId) references races(raceId),
+	constraint fk_result_drivers foreign key (driverId) references drivers(driverId),
+	constraint fk_result_constructor foreign key (constructorId) references constructors(constructorId)
+);
+
+create table if not exists sprint_results
+(
+	resultId		int not null,
+	raceId			int,
+	driverId		int,
+	constructorId		int,
+	number			bigint,
+	grid			int,
+	position		int,
+	positionText		varchar(50),
+	positionOrder		int,
+	points			int,
+	laps			int,
+	time			varchar(50),
+	milliseconds		bigint,
+	fastestLap		int,
+	fastestLapTime		time,
+	statusId		int,
+	constraint 		pk_sprint_results primary key (resultId),
+	constraint 		fk_sprint_results_status foreign key (statusId) references status(statusId),
+	constraint 		fk_sprint_results_races foreign key (raceId) references races(raceId),
+	constraint 		fk_sprint_results_drivers foreign key (driverId) references drivers(driverId),
+	constraint 		fk_sprint_results_constructor foreign key (constructorId) references constructors(constructorId)
+);
+
+
